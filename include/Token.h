@@ -105,10 +105,25 @@ inline std::string_view token_type_to_string(TokenType type)
     return "UNHANDLED_TOKEN_TYPE";
 }
 
+// thank you gemini for this operator overload!
 inline std::ostream& operator<<(std::ostream& os, const Token& token)
 {
+    std::string printable = "";
+    for (char c : token.lexeme)
+    {
+        switch (c)
+        {
+            case '\n': printable += "\\n"; break;
+            case '\t': printable += "\\t"; break;
+            case '\r': printable += "\\r"; break;
+            case '\\': printable += "\\\\"; break;
+            case '"':  printable += "\\\""; break;
+            default:   printable += c; break;
+        }
+    }
+
     os << "[TOKEN] " << token_type_to_string(token.type)
-       << ", \"" << token.lexeme << "\""
+       << ", \"" << printable << "\""
        << ", L" << token.line 
        << " C" << token.column << ")";
     return os;

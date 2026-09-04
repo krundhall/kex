@@ -105,18 +105,41 @@ Token Lexer::scan_char(char first_char, int start_column)
 {
     std::string lexeme = "";
 
-    if (peek() == '\'')
-    {
-        lexeme += advance();
-        return Token{TokenType::UNKNOWN, lexeme, line, start_column};
-    }
-    if (!is_at_end())
-    {
-        lexeme += advance();
-    }
-    if (peek() == '\'')
+    if (peek() == '\'') // empty char literal
     {
         advance();
+        return Token{TokenType::UNKNOWN, "''", line, start_column};
+    }
+    /* grabbed from some stack overflow comment */
+    if (!is_at_end())
+    {
+        if (peek() == '\\')
+        {
+            advance(); // Consume '\'
+            if (!is_at_end())
+            {
+                char escaped = advance();
+                switch (escaped)
+                {
+                    case 'n':  lexeme += '\n'; break;
+                    case 't':  lexeme += '\t'; break;
+                    case 'r':  lexeme += '\r'; break;
+                    case '\\': lexeme += '\\'; break;
+                    case '\'': lexeme += '\''; break;
+                    case '"':  lexeme += '"';  break;
+                    default:   lexeme += escaped; break;
+                }
+            }
+        }
+        else
+        {
+            lexeme += advance();
+        }
+    }
+
+    if (peek() == '\'')
+    {
+        advance(); // Consume closing '\''
         return Token{TokenType::CHAR_LITERAL, lexeme, line, start_column};
     }
 
@@ -129,7 +152,29 @@ Token Lexer::scan_string(int start_column)
 
     while (peek() != '"' && !is_at_end())
     {
-        if (is_newline())
+        if (peek() == '\\')
+        {
+            advance();
+
+            if (is_at_end()) break;
+            
+            /* grabbed from some stack overflow comment */
+            char escaped = advance(); // Consume character after backslash
+            switch (escaped)
+            {
+                case 'n':  lexeme += '\n'; break;
+                case 't':  lexeme += '\t'; break;
+                case 'r':  lexeme += '\r'; break;
+                case '\\': lexeme += '\\'; break;
+                case '"':  lexeme += '"';  break;
+                case '\'': lexeme += '\''; break;
+                default:
+                    // fallback for unknown escape sequences
+                    lexeme += escaped;
+                    break;
+            }
+        }
+        else if (is_newline())
         {
             line++;
             advance();
@@ -144,7 +189,7 @@ Token Lexer::scan_string(int start_column)
     if (is_at_end())
         return {TokenType::UNKNOWN, lexeme, line, start_column};
 
-    advance(); //consume the closing quote
+    advance(); // Consume closing '"'
     return {TokenType::STRING_LITERAL, lexeme, line, start_column};
 }
 
