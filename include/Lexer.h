@@ -26,15 +26,15 @@ private:
 
     bool is_at_end();
     char peek();
-    char peek_next();
     char advance();
 
     bool is_whitespace();
     bool is_newline();
     void skip_whitespace();
 
-    Token scan_number(char first_digit);
-    Token scan_identifier(char first_char);
+    Token scan_number(char first_digit, int start_column);
+    Token scan_identifier(char first_char, int start_column);
+    Token scan_char(char first_char, int start_column);
 
 public:
     Lexer(std::string source);

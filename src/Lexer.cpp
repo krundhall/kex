@@ -56,35 +56,73 @@ void Lexer::skip_whitespace()
     }
 }
 
-Token Lexer::scan_number(char first_digit)
+Token Lexer::scan_number(char first_digit, int start_column)
 {
     std::string lexeme(1, first_digit);
 
-    while (!is_at_end() && std::isdigit(peek()))
+    bool seen_dot = false;
+    while (!is_at_end())
+    {
+        if (isdigit(peek()))
+        {
+            lexeme += advance();
+        }
+        else if (peek() == '.' && seen_dot == false)
+        {
+            lexeme += advance();
+            seen_dot = true;
+        }
+        else
+        {
+            break;
+        }
+    }
+
+    if (seen_dot)
+        return Token{TokenType::FLOAT_LITERAL, lexeme, line, start_column};
+    else
+        return Token{TokenType::INT_LITERAL, lexeme, line, start_column};
+}
+
+Token Lexer::scan_identifier(char first_char, int start_column)
+{
+    std::string lexeme(1, first_char);
+
+    while (!is_at_end() && (std::isalnum(peek()) || peek() == '_'))
     {
         lexeme += advance();
     }
 
-    return Token{TokenType::NUMBER_LITERAL, lexeme, line, column};
-}
-
-Token Lexer::scan_identifier(char first_char)
-{
-    std::string text(1, first_char);
-
-    while (!is_at_end() && (std::isalnum(peek()) || peek() == '_'))
-    {
-        text += advance();
-    }
-
     TokenType type = TokenType::IDENTIFIER;
-    auto it = keywords.find(text);
+    auto it = keywords.find(lexeme);
     if (it != keywords.end())
         type = it->second;
 
-    return Token{type, text, line, column};
+    return Token{type, lexeme, line, start_column};
 }
 
+Token Lexer::scan_char(char first_char, int start_column)
+{
+    // TODO: Implement escape-sequence support
+    std::string lexeme(1, first_char);
+
+    if (peek() == '\'')
+    {
+        lexeme += advance();
+        return Token{TokenType::UNKNOWN, lexeme, line, start_column};
+    }
+    if (!is_at_end())
+    {
+        lexeme += advance();
+    }
+    if (peek() == '\'')
+    {
+        lexeme += advance();
+        return Token{TokenType::CHAR_LITERAL, lexeme, line, start_column};
+    }
+
+    return Token{TokenType::UNKNOWN, lexeme, line, start_column};
+}
 
 std::vector<Token> Lexer::tokenize()
 {
@@ -95,36 +133,37 @@ std::vector<Token> Lexer::tokenize()
         skip_whitespace();
         if (is_at_end()) { break; }
 
+        int start_column = column;
         char c = advance();
 
         switch (c)
         {
-            case '+': tokens.push_back({TokenType::PLUS, "+", line, column}); break;
-            case ';': tokens.push_back({TokenType::SEMICOLON, ";", line, column}); break;
+            case '+': tokens.push_back({TokenType::PLUS, "+", line, start_column}); break;
+            case ';': tokens.push_back({TokenType::SEMICOLON, ";", line, start_column}); break;
             case '=':
                 if (peek() == '=')
                 {
                     advance(); // Consume second '='
-                    tokens.push_back({TokenType::EQUAL_EQUAL, "==", line, column});
+                    tokens.push_back({TokenType::EQUAL_EQUAL, "==", line, start_column});
                 }
                 else
                 {
-                    tokens.push_back({TokenType::EQUAL, "=", line, column});
+                    tokens.push_back({TokenType::EQUAL, "=", line, start_column});
                 }
                 break;
-
+            case '\'': tokens.push_back(scan_char(c, start_column)); break;
             default:
                 if (std::isdigit(c))
                 {
-                    tokens.push_back(scan_number(c));
+                    tokens.push_back(scan_number(c, start_column));
                 }
                 else if (std::isalpha(c) || c == '_')
                 {
-                    tokens.push_back(scan_identifier(c));
+                    tokens.push_back(scan_identifier(c, start_column));
                 }
                 else
                 {
-                    tokens.push_back({TokenType::UNKNOWN, std::string(1, c), line, column});
+                    tokens.push_back({TokenType::UNKNOWN, std::string(1, c), line, start_column});
                 }
                 break;
         }

@@ -1,2 +1,3 @@
-
-let total = 10 + 20;
+int total = 10 + 20;
+char a = 'x';
+float f_number = 3.5;
