@@ -1,9 +1,3 @@
-string simple = "Hello\nWorld";
-string tabs = "Col1\tCol2\tCol3";
-string quotes = "He said \"Hello!\"";
-string path = "C:\\Program Files\\App";
-
-char newline = '\n';
-char tab = '\t';
-char backslash = '\\';
-char single_quote = '\'';
+string unclosed = "hello world;
+/* comment that never closes
+char bad = 'ab;

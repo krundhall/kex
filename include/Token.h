@@ -28,7 +28,7 @@ enum class TokenType
     LEFT_BRACE, RIGHT_BRACE,
 
     // System
-    END_OF_FILE, UNKNOWN
+    END_OF_FILE, UNKNOWN, TOKEN_ERROR
 };
 
 struct Token
@@ -96,7 +96,8 @@ inline std::string_view token_type_to_string(TokenType type)
 
         // System
         {TokenType::END_OF_FILE, "END_OF_FILE"},
-        {TokenType::UNKNOWN, "UNKNOWN"}
+        {TokenType::UNKNOWN, "UNKNOWN"},
+        {TokenType::TOKEN_ERROR, "TOKEN_ERROR"}
     };
 
     auto it = type_names.find(type);

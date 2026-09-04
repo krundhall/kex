@@ -108,7 +108,9 @@ Token Lexer::scan_char(char first_char, int start_column)
     if (peek() == '\'') // empty char literal
     {
         advance();
-        return Token{TokenType::UNKNOWN, "''", line, start_column};
+        std::cerr << "[Lexer Error ] Line " << line << ", Column " << start_column
+                  << ": Empty character literal.\n";
+        return Token{TokenType::TOKEN_ERROR, "''", line, start_column};
     }
     /* grabbed from some stack overflow comment */
     if (!is_at_end())
@@ -143,6 +145,8 @@ Token Lexer::scan_char(char first_char, int start_column)
         return Token{TokenType::CHAR_LITERAL, lexeme, line, start_column};
     }
 
+    std::cerr << "[Lexer Error ] Line " << line << ", Column " << start_column
+              << ": Unterminated character literal.\n";
     return Token{TokenType::UNKNOWN, lexeme, line, start_column};
 }
 
@@ -154,12 +158,10 @@ Token Lexer::scan_string(int start_column)
     {
         if (peek() == '\\')
         {
-            advance();
-
+            advance(); // Consume '\'
             if (is_at_end()) break;
-            
-            /* grabbed from some stack overflow comment */
-            char escaped = advance(); // Consume character after backslash
+
+            char escaped = advance();
             switch (escaped)
             {
                 case 'n':  lexeme += '\n'; break;
@@ -168,17 +170,16 @@ Token Lexer::scan_string(int start_column)
                 case '\\': lexeme += '\\'; break;
                 case '"':  lexeme += '"';  break;
                 case '\'': lexeme += '\''; break;
-                default:
-                    // fallback for unknown escape sequences
-                    lexeme += escaped;
-                    break;
+                default:   lexeme += escaped; break;
             }
         }
         else if (is_newline())
         {
-            line++;
-            advance();
-            column = 1;
+            // Do NOT consume unescaped newlines inside strings if strings cannot span multiple lines,
+            // OR advance past the newline so the string loop can terminate/continue properly.
+            std::cerr << "[Lexer Error] Line " << line << ", Column " << start_column 
+                      << ": Unterminated string literal (found newline).\n";
+            return {TokenType::TOKEN_ERROR, lexeme, line, start_column};
         }
         else
         {
@@ -187,9 +188,13 @@ Token Lexer::scan_string(int start_column)
     }
 
     if (is_at_end())
-        return {TokenType::UNKNOWN, lexeme, line, start_column};
+    {
+        std::cerr << "[Lexer Error] Line " << line << ", Column " << start_column 
+                  << ": Unterminated string literal.\n";
+        return {TokenType::TOKEN_ERROR, lexeme, line, start_column};
+    }
 
-    advance(); // Consume closing '"'
+    advance(); // Consume closing quote '"'
     return {TokenType::STRING_LITERAL, lexeme, line, start_column};
 }
 
@@ -259,12 +264,17 @@ std::vector<Token> Lexer::tokenize()
                 }
                 else if (match('*'))
                 {
+                    bool closed = false;
                     while (!is_at_end())
                     {
                         if (peek() == '*')
                         {
                             advance();
-                            if (match('/')) break;
+                            if (match('/')) 
+                            {
+                                closed = true;
+                                break;
+                            }
                             continue;
                         }
                     
@@ -278,6 +288,13 @@ std::vector<Token> Lexer::tokenize()
                         {
                             advance();
                         }
+                    }
+                
+                    if (!closed)
+                    {
+                        std::cerr << "[Lexer Error] Line " << line << ", Column " << start_column 
+                                  << ": Unterminated multi-line comment.\n";
+                        tokens.push_back({TokenType::TOKEN_ERROR, "/*", line, start_column});
                     }
                 }
                 else
@@ -323,7 +340,9 @@ std::vector<Token> Lexer::tokenize()
                 }
                 else
                 {
-                    tokens.push_back({TokenType::UNKNOWN, std::string(1, c), line, start_column});
+                    std::cerr << "[Lexer Error] Line " << line << ", Column " << start_column 
+                              << ": Unexpected character '" << c << "'.\n";
+                    tokens.push_back({TokenType::TOKEN_ERROR, std::string(1, c), line, start_column});
                 }
                 break;
         }
