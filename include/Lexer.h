@@ -5,12 +5,15 @@
 #include <unordered_map>
 
 inline static const std::unordered_map<std::string, TokenType> keywords = {
-    {"int", TokenType::KEYWORD_LET},
+    {"int", TokenType::KEYWORD_INT},
+    {"float", TokenType::KEYWORD_FLOAT},
+    {"char", TokenType::KEYWORD_CHAR},
+    {"void", TokenType::KEYWORD_VOID},
     {"let", TokenType::KEYWORD_LET},
-    {"if", TokenType::KEYWORD_LET},
-    {"else", TokenType::KEYWORD_LET},
-    {"while", TokenType::KEYWORD_LET},
-    {"return", TokenType::KEYWORD_LET}
+    {"if", TokenType::KEYWORD_IF},
+    {"else", TokenType::KEYWORD_ELSE},
+    {"while", TokenType::KEYWORD_WHILE},
+    {"return", TokenType::KEYWORD_RETURN}
 };
 
 class Lexer
