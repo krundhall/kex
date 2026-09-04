@@ -1,3 +1,10 @@
-int total = 10 + 20;
-char a = 'x';
+int x = 2;
+int y = 2;
+let total = x + y;
+// comment!
 float f_number = 3.5;
+/* multi
+   line
+   comment! */
+char a = 'x';
+string name = "kevin";

@@ -1,35 +1,34 @@
 #pragma once
 #include <string>
 #include <iostream>
+#include <unordered_map>
 
 enum class TokenType
 {
     // Keywords
-    KEYWORD_INT,
-    KEYWORD_FLOAT,
-    KEYWORD_CHAR,
-    KEYWORD_VOID,
-    KEYWORD_LET,        // let
-    KEYWORD_IF,
-    KEYWORD_ELSE,
-    KEYWORD_WHILE,
-    KEYWORD_RETURN,
+    KEYWORD_INT, KEYWORD_FLOAT, KEYWORD_CHAR, KEYWORD_STRING, KEYWORD_VOID,
+    KEYWORD_LET, KEYWORD_IF, KEYWORD_ELSE, KEYWORD_WHILE, KEYWORD_RETURN,
 
-    // Literals & Names
-    IDENTIFIER,           // "total"
-    INT_LITERAL,         // "10", "20"
-    FLOAT_LITERAL,      // "3.5"
-    CHAR_LITERAL,      // 'x'
+    // Literals
+    IDENTIFIER, INT_LITERAL, FLOAT_LITERAL,
+    CHAR_LITERAL, STRING_LITERAL,   
 
-    // Operators & Symbols
-    EQUAL,
-    EQUAL_EQUAL,
-    PLUS,
-    SEMICOLON,
+    // Single Character Operators & Punctuation
+    PLUS, MINUS, STAR, SLASH, PERCENT,
+    SEMICOLON, COLON, COMMA, DOT, BANG,
+
+    // Multi Character Operators & Comparison
+    EQUAL, EQUAL_EQUAL, BANG_EQUAL,
+    LESS, LESS_EQUAL, GREATER, GREATER_EQUAL,
+    INCREMENT, DECREMENT, POW,
+
+    // Delimiters
+    LEFT_PAREN, RIGHT_PAREN,
+    LEFT_BRACKET, RIGHT_BRACKET,
+    LEFT_BRACE, RIGHT_BRACE,
 
     // System
-    END_OF_FILE,
-    UNKNOWN
+    END_OF_FILE, UNKNOWN
 };
 
 struct Token
@@ -41,33 +40,68 @@ struct Token
 };
 
 
-constexpr std::string_view token_type_to_string(TokenType type)
+inline std::string_view token_type_to_string(TokenType type)
 {
-    switch (type)
-    {
-        case TokenType::KEYWORD_INT:    return "KEYWORD_INT";
-        case TokenType::KEYWORD_FLOAT:  return "KEYWORD_FLOAT";
-        case TokenType::KEYWORD_CHAR:   return "KEYWORD_CHAR";
-        case TokenType::KEYWORD_VOID:   return "KEYWORD_VOID";
-        case TokenType::KEYWORD_LET:    return "KEYWORD_LET";
-        case TokenType::KEYWORD_IF:     return "KEYWORD_IF";
-        case TokenType::KEYWORD_ELSE:   return "KEYWORD_ELSE";
-        case TokenType::KEYWORD_WHILE:  return "KEYWORD_WHILE";
-        case TokenType::KEYWORD_RETURN: return "KEYWORD_RETURN";
+    static const std::unordered_map<TokenType, std::string_view> type_names = {
+        // Keywords
+        {TokenType::KEYWORD_INT, "KEYWORD_INT"},
+        {TokenType::KEYWORD_FLOAT, "KEYWORD_FLOAT"},
+        {TokenType::KEYWORD_CHAR, "KEYWORD_CHAR"},
+        {TokenType::KEYWORD_STRING, "KEYWORD_STRING"},
+        {TokenType::KEYWORD_VOID, "KEYWORD_VOID"},
+        {TokenType::KEYWORD_LET, "KEYWORD_LET"},
+        {TokenType::KEYWORD_IF, "KEYWORD_IF"},
+        {TokenType::KEYWORD_ELSE, "KEYWORD_ELSE"},
+        {TokenType::KEYWORD_WHILE, "KEYWORD_WHILE"},
+        {TokenType::KEYWORD_RETURN, "KEYWORD_RETURN"},
 
-        case TokenType::IDENTIFIER:     return "IDENTIFIER";
-        case TokenType::INT_LITERAL:    return "INT_LITERAL";
-        case TokenType::FLOAT_LITERAL:  return "FLOAT_LITERAL";
-        case TokenType::CHAR_LITERAL:   return "CHAR_LITERAL";
-        
-        case TokenType::PLUS:           return "PLUS";
-        case TokenType::SEMICOLON:      return "SEMICOLON";
-        case TokenType::EQUAL:          return "EQUAL";
-        case TokenType::EQUAL_EQUAL:    return "EQUAL_EQUAL";
+        // Literals
+        {TokenType::IDENTIFIER, "IDENTIFIER"},
+        {TokenType::INT_LITERAL, "INT_LITERAL"},
+        {TokenType::FLOAT_LITERAL, "FLOAT_LITERAL"},
+        {TokenType::CHAR_LITERAL, "CHAR_LITERAL"},
+        {TokenType::STRING_LITERAL, "STRING_LITERAL"},
 
-        case TokenType::UNKNOWN:        return "UNKNOWN";
-        case TokenType::END_OF_FILE:    return "END_OF_FILE";
-    }
+        // Single Character Operators & Punctuation
+        {TokenType::PLUS, "PLUS"},
+        {TokenType::MINUS, "MINUS"},
+        {TokenType::STAR, "STAR"},
+        {TokenType::SLASH, "SLASH"},
+        {TokenType::PERCENT, "PERCENT"},
+        {TokenType::SEMICOLON, "SEMICOLON"},
+        {TokenType::COLON, "COLON"},
+        {TokenType::COMMA, "COMMA"},
+        {TokenType::DOT, "DOT"},
+        {TokenType::BANG, "BANG"},
+
+        // Multi Character Operators & Comparison
+        {TokenType::EQUAL, "EQUAL"},
+        {TokenType::EQUAL_EQUAL, "EQUAL_EQUAL"},
+        {TokenType::BANG_EQUAL, "BANG_EQUAL"},
+        {TokenType::LESS, "LESS"},
+        {TokenType::LESS_EQUAL, "LESS_EQUAL"},
+        {TokenType::GREATER, "GREATER"},
+        {TokenType::GREATER_EQUAL, "GREATER_EQUAL"},
+        {TokenType::INCREMENT, "INCREMENT"},
+        {TokenType::DECREMENT, "DECREMENT"},
+        {TokenType::POW, "POW"},
+
+        // Delimiters
+        {TokenType::LEFT_PAREN, "LEFT_PAREN"},
+        {TokenType::RIGHT_PAREN, "RIGHT_PAREN"},
+        {TokenType::LEFT_BRACKET, "LEFT_BRACKET"},
+        {TokenType::RIGHT_BRACKET, "RIGHT_BRACKET"},
+        {TokenType::LEFT_BRACE, "LEFT_BRACE"},
+        {TokenType::RIGHT_BRACE, "RIGHT_BRACE"},
+
+        // System
+        {TokenType::END_OF_FILE, "END_OF_FILE"},
+        {TokenType::UNKNOWN, "UNKNOWN"}
+    };
+
+    auto it = type_names.find(type);
+    if (it != type_names.end()) { return it->second; };
+
     return "UNHANDLED_TOKEN_TYPE";
 }
 

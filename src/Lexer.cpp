@@ -103,8 +103,7 @@ Token Lexer::scan_identifier(char first_char, int start_column)
 
 Token Lexer::scan_char(char first_char, int start_column)
 {
-    // TODO: Implement escape-sequence support
-    std::string lexeme(1, first_char);
+    std::string lexeme = "";
 
     if (peek() == '\'')
     {
@@ -117,11 +116,46 @@ Token Lexer::scan_char(char first_char, int start_column)
     }
     if (peek() == '\'')
     {
-        lexeme += advance();
+        advance();
         return Token{TokenType::CHAR_LITERAL, lexeme, line, start_column};
     }
 
     return Token{TokenType::UNKNOWN, lexeme, line, start_column};
+}
+
+Token Lexer::scan_string(int start_column)
+{
+    std::string lexeme = "";
+
+    while (peek() != '"' && !is_at_end())
+    {
+        if (is_newline())
+        {
+            line++;
+            advance();
+            column = 1;
+        }
+        else
+        {
+            lexeme += advance();
+        }
+    }
+
+    if (is_at_end())
+        return {TokenType::UNKNOWN, lexeme, line, start_column};
+
+    advance(); //consume the closing quote
+    return {TokenType::STRING_LITERAL, lexeme, line, start_column};
+}
+
+bool Lexer::match(char expected)
+{
+    if (is_at_end() || source[cursor] != expected)
+        return false;
+
+    cursor++;
+    column++;
+    return true;
 }
 
 std::vector<Token> Lexer::tokenize()
@@ -138,19 +172,100 @@ std::vector<Token> Lexer::tokenize()
 
         switch (c)
         {
-            case '+': tokens.push_back({TokenType::PLUS, "+", line, start_column}); break;
+            // Punctuation & Delimiters
+            case '(': tokens.push_back({TokenType::LEFT_PAREN, "(", line, start_column}); break;
+            case ')': tokens.push_back({TokenType::RIGHT_PAREN, ")", line, start_column}); break;
+            case '[': tokens.push_back({TokenType::LEFT_BRACKET, "[", line, start_column}); break;
+            case ']': tokens.push_back({TokenType::RIGHT_BRACKET, "]", line, start_column}); break;
+            case '{': tokens.push_back({TokenType::LEFT_BRACE, "{", line, start_column}); break;
+            case '}': tokens.push_back({TokenType::RIGHT_BRACE, "}", line, start_column}); break;
             case ';': tokens.push_back({TokenType::SEMICOLON, ";", line, start_column}); break;
-            case '=':
-                if (peek() == '=')
+            case ':': tokens.push_back({TokenType::COLON, ":", line, start_column}); break;
+            case ',': tokens.push_back({TokenType::COMMA, ",", line, start_column}); break;
+            case '.': tokens.push_back({TokenType::DOT, ".", line, start_column}); break;
+            case '"': tokens.push_back(scan_string(start_column)); break;
+
+            // Operators
+            case '+':
+                if (match('+'))
+                    tokens.push_back({TokenType::INCREMENT, "++", line, start_column});
+                else
+                    tokens.push_back({TokenType::PLUS, "+", line, start_column});
+                break;
+            case '-':
+                if (match('-'))
+                    tokens.push_back({TokenType::DECREMENT, "--", line, start_column});
+                else
+                    tokens.push_back({TokenType::MINUS, "-", line, start_column});
+                break;
+            case '*':
+                if (match('*'))
+                    tokens.push_back({TokenType::POW, "**", line, start_column});
+                else
+                    tokens.push_back({TokenType::STAR, "*", line, start_column});
+                break;
+            case '/':
+                if (match('/'))
                 {
-                    advance(); // Consume second '='
-                    tokens.push_back({TokenType::EQUAL_EQUAL, "==", line, start_column});
+                    while (peek() != '\n' && !is_at_end())
+                    {
+                        advance();
+                    }
+                }
+                else if (match('*'))
+                {
+                    while (!is_at_end())
+                    {
+                        if (peek() == '*')
+                        {
+                            advance();
+                            if (match('/')) break;
+                            continue;
+                        }
+                    
+                        if (is_newline())
+                        {
+                            line++;
+                            advance();
+                            column = 1;
+                        }
+                        else
+                        {
+                            advance();
+                        }
+                    }
                 }
                 else
                 {
-                    tokens.push_back({TokenType::EQUAL, "=", line, start_column});
+                    tokens.push_back({TokenType::SLASH, "/", line, start_column});
                 }
                 break;
+            case '%': tokens.push_back({TokenType::PERCENT, "%", line, start_column}); break;
+
+            case '=':
+                if (match('='))
+                    tokens.push_back({TokenType::EQUAL_EQUAL, "==", line, start_column});
+                else
+                    tokens.push_back({TokenType::EQUAL, "=", line, start_column});
+                break;
+            case '!':
+                if (match('='))
+                    tokens.push_back({TokenType::BANG_EQUAL, "!=", line, start_column});
+                else
+                   tokens.push_back({TokenType::BANG, "!", line, start_column});
+                break;
+            case '<':
+                if (match('='))
+                    tokens.push_back({TokenType::LESS_EQUAL, "<=", line, start_column});
+                else
+                    tokens.push_back({TokenType::LESS, "<", line, start_column});
+                break;
+            case '>':
+                if (match('='))
+                    tokens.push_back({TokenType::GREATER_EQUAL, ">=", line, start_column});
+                else
+                    tokens.push_back({TokenType::GREATER, ">", line, start_column});
+                break;          
             case '\'': tokens.push_back(scan_char(c, start_column)); break;
             default:
                 if (std::isdigit(c))

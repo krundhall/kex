@@ -8,6 +8,7 @@ inline static const std::unordered_map<std::string, TokenType> keywords = {
     {"int", TokenType::KEYWORD_INT},
     {"float", TokenType::KEYWORD_FLOAT},
     {"char", TokenType::KEYWORD_CHAR},
+    {"string", TokenType::KEYWORD_STRING},
     {"void", TokenType::KEYWORD_VOID},
     {"let", TokenType::KEYWORD_LET},
     {"if", TokenType::KEYWORD_IF},
@@ -35,6 +36,9 @@ private:
     Token scan_number(char first_digit, int start_column);
     Token scan_identifier(char first_char, int start_column);
     Token scan_char(char first_char, int start_column);
+    Token scan_string(int start_column);
+
+    bool match(char expected);
 
 public:
     Lexer(std::string source);
