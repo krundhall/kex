@@ -1,3 +1,0 @@
-string unclosed = "hello world;
-/* comment that never closes
-char bad = 'ab;
