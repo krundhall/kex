@@ -8,6 +8,7 @@ enum class TokenType
     // Keywords
     KEYWORD_INT, KEYWORD_FLOAT, KEYWORD_CHAR, KEYWORD_STRING, KEYWORD_VOID,
     KEYWORD_LET, KEYWORD_IF, KEYWORD_ELSE, KEYWORD_WHILE, KEYWORD_RETURN,
+    KEYWORD_NULL,
 
     // Literals
     IDENTIFIER, INT_LITERAL, FLOAT_LITERAL,
@@ -54,6 +55,7 @@ inline std::string_view token_type_to_string(TokenType type)
         {TokenType::KEYWORD_ELSE, "KEYWORD_ELSE"},
         {TokenType::KEYWORD_WHILE, "KEYWORD_WHILE"},
         {TokenType::KEYWORD_RETURN, "KEYWORD_RETURN"},
+        {TokenType::KEYWORD_NULL, "KEYWORD_NULL"},
 
         // Literals
         {TokenType::IDENTIFIER, "IDENTIFIER"},
