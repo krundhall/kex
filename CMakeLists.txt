@@ -5,6 +5,7 @@ add_executable(
     src/main.cpp
     src/lexer/Lexer.cpp
     src/parser/Parser.cpp
+    src/parser/AST.cpp
 )
 
 target_include_directories(kex PRIVATE include)
