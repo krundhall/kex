@@ -2,9 +2,13 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <memory>
+#include <variant>
 
 #include "Token.h"
 #include "Lexer.h"
+#include "Parser.h"
+#include "AST.h"
 
 std::string readFile(std::string filepath);
 
@@ -23,6 +27,35 @@ int main(int argc, char** argv)
     {
         std::cout << token << '\n';
     }
+
+    std::cout << "\n===========\n";
+
+    // Construct the AST for: -123 * (45.67)
+    // 
+    //            Binary (*)
+    //           /          \
+    //   Unary (-)          Grouping
+    //      |                  |
+    // Literal (123.0)     Literal (45.67)
+
+    auto ast = std::make_unique<Binary>(
+        // Left side: Unary '-' applied to 123.0
+        std::make_unique<Unary>(
+            Token{TokenType::MINUS, "-", 1},
+            std::make_unique<Literal>(123.0)
+        ),
+        // Operator: '*'
+        Token{TokenType::STAR, "*", 1},
+        // Right side: Grouping containing 45.67
+        std::make_unique<Grouping>(
+            std::make_unique<Literal>(45.67)
+        )
+    );
+
+    print_ast(ast.get());
+    std::cout << '\n';
+
+
     return 0;
 }
 

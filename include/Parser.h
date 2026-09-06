@@ -4,7 +4,13 @@
 #include <variant>
 #include <string>
 
-using LiteralValue = std::variant<std::monostate, double, std::string, bool>;
+using LiteralValue = std::variant<
+    std::monostate,   // null/void
+    int,         // INT_LITERAL
+    double,         // FLOAT_LITERAL
+    char,           // CHAR_LITERAL
+    std::string,   // STRING_LITERAL
+    bool>;        // true/false
 
 struct Expr
 {
@@ -46,4 +52,23 @@ struct Grouping : public Expr
 
     explicit Grouping(ExprPtr expression)
         : expression(std::move(expression)) {}
+};
+
+struct UpdateExpr : public Expr
+{
+    Token op; // INCREMENT or DECREMENT
+    Expr operand; // Target
+    bool postfix; // true=x++, false=++x
+
+    UpdateExpr(Token op, Expr operand, bool postfix)
+        : op(std::move(op)), operand(std::move(operand)), postfix(postfix) {}
+};
+
+struct ArrayAccess : public Expr
+{
+    ExprPtr target;
+    ExprPtr index;
+
+    ArrayAccess(ExprPtr target, ExprPtr index)
+        : target(std::move(target)), index(std::move(index)) {}
 };
