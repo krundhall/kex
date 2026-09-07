@@ -26,9 +26,37 @@ expression ->    literal
                | binary
                | grouping ;
 
-literal    ->    NUMBER | STRING | "true" | "false" ;
+literal    ->    INT | FLOAT | CHAR | STRING | "true" | "false" ;
 grouping   ->    "(" expression ")" ;
 unary      ->    ( "-" | "!" ) expression ;
 binary     ->    expression operator expression ;
 operator   ->    "==" | "!=" | "<" | "<=" | ">" | ">="
                | "+"  | "-"  | "*" | "/" ;
+
+### 6.1
+
+expression ->   equality
+
+equality   ->   comparison ( ( "!=" | "==" ) comparison )* ;
+
+comparison ->   term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
+
+term       ->   factor ( ( "-" | "+" ) factor )* ;
+
+factor     ->   unary ( ( "/" | "*" ) unary )* ;
+
+unary      ->   ( "!" | "-" ) unary
+                | primary;
+
+primary    ->   INT | FLOAT | CHAR | STRING | "true" | "false" | "null" | "(" expression ")" ;
+
+
+Equality      == !=      Left
+Comparison  > >= < <=    Left
+Term           - +       Left
+Factor         / *       Left
+Unary          ! -       Right
+
+### 6.2 Recursive Descent Parsing
+
+

@@ -1,5 +1,4 @@
 #include "AST.h"
-#include <variant>
 #include <memory>
 #include <iostream>
 #include <string>
@@ -17,7 +16,7 @@ void print_ast(const Expr* expr)
         else if (std::holds_alternative<double>(l->value))
             std::cout << std::get<double>(l->value);
 
-        if (std::holds_alternative<char>(l->value))
+        else if (std::holds_alternative<char>(l->value))
             std::cout << "'" << std::get<char>(l->value) << "'";
 
         else if (std::holds_alternative<std::string>(l->value))
