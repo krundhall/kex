@@ -57,6 +57,20 @@ Term           - +       Left
 Factor         / *       Left
 Unary          ! -       Right
 
-### 6.2 Recursive Descent Parsing
+### 8.1 Statements and State
+
+program -> declaration* EOF ;
+
+declaration -> varDecl | statement ;
+
+varDecl -> type IDENTIFIER ( "=" expression )? ";" ;
+
+type -> "int" | "float" | "char" | "string" | "bool" | "auto" | IDENTIFIER ;
+
+statement -> exprStmt | block ;
+
+exprStmt -> expression ";" ;
+
+block -> "{" declaration "}" ;
 
 

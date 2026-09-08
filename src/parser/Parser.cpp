@@ -58,6 +58,8 @@ Token Parser::consume(TokenType type, const std::string& message)
 // reports syntax error and returns parsererror exception object for consume() to throw
 Parser::ParseError Parser::error(const Token& token, const std::string& message)
 {
+    this->panic_mode = true;
+
     std::cerr << "[line " << token.line << "] Error";
 
     if (token.type == TokenType::END_OF_FILE) {
@@ -96,6 +98,20 @@ void Parser::synchronize()
 
         advance();
     }
+}
+
+ExprPtr Parser::parse()
+{
+    try
+    {
+        return expression();
+    }
+    catch(Parser::ParseError e)
+    {
+        std::cerr << e.what() << '\n';
+        return nullptr;
+    }
+    
 }
 
 ExprPtr Parser::expression()
@@ -177,9 +193,18 @@ ExprPtr Parser::primary()
     if (match({TokenType::KEYWORD_TRUE})) return std::make_unique<Literal>(true);
     if (match({TokenType::KEYWORD_NULL})) return std::make_unique<Literal>(std::monostate{});
 
-    if (match({TokenType::INT_LITERAL, TokenType::FLOAT_LITERAL, 
-               TokenType::CHAR_LITERAL, TokenType::STRING_LITERAL}))
-    {
+    // INT_LITERAL
+    if (match({TokenType::INT_LITERAL})) {
+        return std::make_unique<Literal>(std::stoi(previous().lexeme));
+    }
+
+    // FLOAT_LITERAL
+    if (match({TokenType::FLOAT_LITERAL})) {
+        return std::make_unique<Literal>(std::stod(previous().lexeme));
+    }
+
+    // STRING_LITERAL
+    if (match({TokenType::STRING_LITERAL})) {
         return std::make_unique<Literal>(previous().lexeme);
     }
 
@@ -190,5 +215,5 @@ ExprPtr Parser::primary()
         return std::make_unique<Grouping>(std::move(expr));
     }
 
-    throw error(peek(), "Expect expression");
+    throw error(peek(), "Expect expression.");
 }

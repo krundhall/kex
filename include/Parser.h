@@ -7,11 +7,10 @@
 
 class Parser
 {
-private:
+public:
     const std::vector<Token>& tokens;
     int current = 0;
 
-    bool had_error = false;
     bool panic_mode = false;
 
     struct ParseError : public std::runtime_error
@@ -31,11 +30,11 @@ private:
 
     void synchronize();
     
-public:
     Parser(const std::vector<Token>& tokens)
         : tokens(tokens) {}
 
-
+    ExprPtr parse();
+    bool had_error = false;
 
     ExprPtr expression();
     ExprPtr equality();

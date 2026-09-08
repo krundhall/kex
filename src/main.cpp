@@ -23,39 +23,24 @@ int main(int argc, char** argv)
     std::cout << source << '\n';
     Lexer lexer(source);
     auto tokens = lexer.tokenize();
-    for (const auto &token : tokens)
+    Parser parser(tokens);
+    
+    while (!parser.is_at_end())
     {
-        std::cout << token << '\n';
+        ExprPtr expression = parser.parse();
+
+        if (expression)
+        {
+            print_ast(expression.get());
+            std::cout << "\n";
+        }
+        else
+        {
+            parser.synchronize();
+        }
     }
 
-    std::cout << "\n===========\n";
-
-    // Construct the AST for: -123 * (45.67)
-    // 
-    //            Binary (*)
-    //           /          \
-    //   Unary (-)          Grouping
-    //      |                  |
-    // Literal (123.0)     Literal (45.67)
-
-    auto ast = std::make_unique<Binary>(
-        // Left side: Unary '-' applied to 123.0
-        std::make_unique<Unary>(
-            Token{TokenType::MINUS, "-", 1},
-            std::make_unique<Literal>(123.0)
-        ),
-        // Operator: '*'
-        Token{TokenType::STAR, "*", 1},
-        // Right side: Grouping containing 45.67
-        std::make_unique<Grouping>(
-            std::make_unique<Literal>(45.67)
-        )
-    );
-
-    print_ast(ast.get());
-    std::cout << '\n';
-
-
+    if (parser.had_error) return 1;
     return 0;
 }
 
