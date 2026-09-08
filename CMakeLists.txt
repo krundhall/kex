@@ -9,3 +9,4 @@ add_executable(
 )
 
 target_include_directories(kex PRIVATE include)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)

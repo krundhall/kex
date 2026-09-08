@@ -1,8 +1,4 @@
 #include "Parser.h"
-#include "Token.h"
-#include <cassert>
-#include "Parser.h"
-#include "Parser.h"
 
 bool Parser::is_at_end()
 {
@@ -51,7 +47,7 @@ bool Parser::match(std::initializer_list<TokenType> types)
     return false;
 }
 
-Token Parser::consume(TokenType tyoe, const std::string &message)
+Token Parser::consume(TokenType type, const std::string &message)
 {
     if (check(type)) return advance();
 
@@ -60,7 +56,16 @@ Token Parser::consume(TokenType tyoe, const std::string &message)
 
 std::runtime_error Parser::error(const Token &token, const std::string &message)
 {
-    return std::runtime_error(message);;
+    std::cerr << "[line " << token.line << "] Error";
+
+    if (token.type == TokenType::END_OF_FILE)
+        std::cerr << " at end";
+    else
+        std::cerr << " at '" << token.lexeme << "'";
+    
+    std::cerr << ": " << message << "\n";
+
+    return std::runtime_error(message);
 }
 
 ExprPtr Parser::expression()
@@ -145,14 +150,14 @@ ExprPtr Parser::primary()
     if (match({TokenType::INT_LITERAL, TokenType::FLOAT_LITERAL, 
                TokenType::CHAR_LITERAL, TokenType::STRING_LITERAL}))
     {
-        return std::make_unique<Literal>(previous().literal);
+        return std::make_unique<Literal>(previous().lexeme);
     }
 
     if (match({TokenType::LEFT_PAREN}))
     {
         ExprPtr expr = expression();
         consume(TokenType::RIGHT_PAREN, "Expect ')' after expression.");
-        return std::make_unique<Groupng>(std::move(expr));
+        return std::make_unique<Grouping>(std::move(expr));
     }
 
     throw std::runtime_error("Expect expression.");
