@@ -15,7 +15,8 @@ inline static const std::unordered_map<std::string, TokenType> keywords = {
     {"else", TokenType::KEYWORD_ELSE},
     {"while", TokenType::KEYWORD_WHILE},
     {"return", TokenType::KEYWORD_RETURN},
-    {"null", TokenType::KEYWORD_NULL}
+    {"null", TokenType::KEYWORD_NULL},
+    {"print", TokenType::PRINT}
 };
 
 class Lexer

@@ -39,6 +39,7 @@ public:
 
     // Expression parsing rules
     ExprPtr expression();
+    ExprPtr assignment();
     ExprPtr equality();
     ExprPtr comparison();
     ExprPtr term();

@@ -1,13 +1,14 @@
 #pragma once
+#include "AST.h"
 #include <memory>
 #include <vector>
 #include "Token.h"
 // #include "Expr.h"
-#include "AST.h"
 
 struct ExpressionStmt;
 struct VarStmt;
 struct BlockStmt;
+struct PrintStmt;
 
 class StmtVisitor
 {
@@ -16,6 +17,7 @@ public:
     virtual void visitExpressionStmt(ExpressionStmt& stmt) = 0;
     virtual void visitVarStmt(VarStmt& stmt) = 0;
     virtual void visitBlockStmt(BlockStmt& stmt) = 0;
+    virtual void visitPrintStmt(PrintStmt& stmt) = 0;
 };
 
 struct Stmt
@@ -68,5 +70,18 @@ struct BlockStmt : public Stmt
     void accept(StmtVisitor& visitor) override 
     {
         visitor.visitBlockStmt(*this);
+    }
+};
+
+struct PrintStmt : public Stmt
+{
+    ExprPtr expression;
+
+    explicit PrintStmt(ExprPtr expression)
+        : expression(std::move(expression)) {}
+
+    void accept(StmtVisitor& visitor) override
+    {
+        visitor.visitPrintStmt(*this);
     }
 };

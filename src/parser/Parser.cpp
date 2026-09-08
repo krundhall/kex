@@ -106,20 +106,41 @@ std::vector<StmtPtr> Parser::parse()
     while (!is_at_end())
     {
         StmtPtr stmt = declaration();
-        if (stmt) 
+        if (stmt)
         {
             statements.push_back(std::move(stmt));
         }
     }
-
     return statements;
 }
 
 ExprPtr Parser::expression()
 {
-    return equality();
+    return assignment();
 }
 
+ExprPtr Parser::assignment()
+{
+    // Parse left side (evaluates down through equality, comparison, term, etc.)
+    ExprPtr expr = equality();
+
+    if (match({TokenType::EQUAL}))
+    {
+        Token equals = previous();
+        ExprPtr value = assignment(); // Right-recursive for assignment chaining (a = b = 5)
+
+        // Ensure the left-hand target is a valid lvalue (Variable node)
+        if (auto v = dynamic_cast<Variable*>(expr.get()))
+        {
+            Token name = v->name;
+            return std::make_unique<Assign>(name, std::move(value));
+        }
+
+        error(equals, "Invalid assignment target.");
+    }
+
+    return expr;
+}
 ExprPtr Parser::equality()
 {
     ExprPtr expr = comparison();
@@ -299,7 +320,14 @@ StmtPtr Parser::var_declaration()
 
 StmtPtr Parser::statement()
 {
-    if (match({TokenType::LEFT_BRACE})) 
+    if (match({TokenType::PRINT}))
+    {
+        ExprPtr value = expression();
+        consume(TokenType::SEMICOLON, "Expect ';' after value.");
+        return std::make_unique<PrintStmt>(std::move(value));
+    }
+
+    if (match({TokenType::LEFT_BRACE}))
     {
         return std::make_unique<BlockStmt>(block());
     }

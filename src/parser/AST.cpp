@@ -1,81 +1,96 @@
 #include "AST.h"
-#include <memory>
 #include <iostream>
-#include <string>
+
+class AstPrinter : public ExprVisitor
+{
+public:
+    void print(const Expr* expr)
+    {
+        if (expr)
+        {
+            const_cast<Expr*>(expr)->accept(*this);
+        }
+    }
+
+    void visitBinary(Binary& expr) override
+    {
+        std::cout << "(" << expr.op.lexeme << " ";
+        print(expr.left.get());
+        std::cout << " ";
+        print(expr.right.get());
+        std::cout << ")";
+    }
+
+    void visitUnary(Unary& expr) override
+    {
+        std::cout << "(" << expr.op.lexeme << " ";
+        print(expr.right.get());
+        std::cout << ")";
+    }
+
+    void visitLiteral(Literal& expr) override
+    {
+        if (std::holds_alternative<int>(expr.value))
+            std::cout << std::get<int>(expr.value);
+        else if (std::holds_alternative<double>(expr.value))
+            std::cout << std::get<double>(expr.value);
+        else if (std::holds_alternative<char>(expr.value))
+            std::cout << "'" << std::get<char>(expr.value) << "'";
+        else if (std::holds_alternative<std::string>(expr.value))
+            std::cout << "\"" << std::get<std::string>(expr.value) << "\"";
+        else if (std::holds_alternative<bool>(expr.value))
+            std::cout << (std::get<bool>(expr.value) ? "true" : "false");
+        else if (std::holds_alternative<std::monostate>(expr.value))
+            std::cout << "null";
+    }
+
+    void visitVariable(Variable& expr) override
+    {
+        std::cout << expr.name.lexeme;
+    }
+
+    void visitAssign(Assign& expr) override
+    {
+        std::cout << "(" << expr.name.lexeme << " = ";
+        print(expr.value.get());
+        std::cout << ")";
+    }
+
+    void visitGrouping(Grouping& expr) override
+    {
+        std::cout << "(group ";
+        print(expr.expression.get());
+        std::cout << ")";
+    }
+
+    void visitUpdateExpr(UpdateExpr& expr) override
+    {
+        std::cout << "(";
+        if (expr.postfix)
+        {
+            print(expr.operand.get());
+            std::cout << " " << expr.op.lexeme;
+        }
+        else
+        {
+            std::cout << expr.op.lexeme << " ";
+            print(expr.operand.get());
+        }
+        std::cout << ")";
+    }
+
+    void visitArrayAccess(ArrayAccess& expr) override
+    {
+        std::cout << "(index ";
+        print(expr.target.get());
+        std::cout << " ";
+        print(expr.index.get());
+        std::cout << ")";
+    }
+};
 
 void print_ast(const Expr* expr)
 {
-    if (!expr) return;
-
-    // Literal
-    if (auto l = dynamic_cast<const Literal*>(expr))
-    {
-        if (std::holds_alternative<int>(l->value))
-            std::cout << std::get<int>(l->value);
-
-        else if (std::holds_alternative<double>(l->value))
-            std::cout << std::get<double>(l->value);
-
-        else if (std::holds_alternative<char>(l->value))
-            std::cout << "'" << std::get<char>(l->value) << "'";
-
-        else if (std::holds_alternative<std::string>(l->value))
-            std::cout << "\"" << std::get<std::string>(l->value) << "\"";
-
-        else if (std::holds_alternative<bool>(l->value))
-            std::cout << (std::get<bool>(l->value) ? "true" : "false");
-
-        else if (std::holds_alternative<std::monostate>(l->value))
-            std::cout << "null";
-    }
-    // Unary ( -x )
-    else if (auto u = dynamic_cast<const Unary*>(expr))
-    {
-        std::cout << "(" << u->op.lexeme << " ";
-        print_ast(u->right.get());
-        std::cout << ")";
-    }
-
-    // Binary ( x + y )
-    else if (auto b = dynamic_cast<const Binary*>(expr))
-    {
-        std::cout << "(" << b->op.lexeme << " ";
-        print_ast(b->left.get());
-        std::cout << " ";
-        print_ast(b->right.get());
-        std::cout << ")";
-    }
-
-    // Grouping ( (x) )
-    else if (auto g = dynamic_cast<const Grouping*>(expr))
-    {
-        std::cout << "(group ";
-        print_ast(g->expression.get());
-        std::cout << ")";
-    }
-
-    else if (auto u = dynamic_cast<const UpdateExpr*>(expr))
-    {
-        std::cout << "(";
-        if (u->postfix) // x++
-        {
-            print_ast(u->operand.get());
-            std::cout << " " << u->op.lexeme;
-        }
-        else // ++x
-        {
-            std::cout << u->op.lexeme << " ";
-            print_ast(u->operand.get());
-        }
-        std::cout << ")";
-    }
-
-    else if (auto a = dynamic_cast<const ArrayAccess*>(expr))
-    {
-        std::cout << "(index ";
-        print_ast(a->target.get());
-        std::cout << " ";
-        print_ast(a->index.get());
-        std::cout << ")";
-    }
+    AstPrinter printer;
+    printer.print(expr);
 }
