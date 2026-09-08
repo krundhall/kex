@@ -48,6 +48,14 @@ struct Literal : public Expr
         : value(std::move(value)) {}
 };
 
+struct Variable : public Expr
+{
+    Token name;
+
+    explicit Variable(Token name)
+        : name(std::move(name)) {}
+};
+
 struct Grouping : public Expr
 {
     ExprPtr expression;

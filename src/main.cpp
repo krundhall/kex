@@ -24,23 +24,6 @@ int main(int argc, char** argv)
     Lexer lexer(source);
     auto tokens = lexer.tokenize();
     Parser parser(tokens);
-    
-    while (!parser.is_at_end())
-    {
-        ExprPtr expression = parser.parse();
-
-        if (expression)
-        {
-            print_ast(expression.get());
-            std::cout << "\n";
-        }
-        else
-        {
-            parser.synchronize();
-        }
-    }
-
-    if (parser.had_error) return 1;
     return 0;
 }
 

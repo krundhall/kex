@@ -100,18 +100,19 @@ void Parser::synchronize()
     }
 }
 
-ExprPtr Parser::parse()
+std::vector<StmtPtr> Parser::parse()
 {
-    try
+    std::vector<StmtPtr> statements;
+    while (!is_at_end())
     {
-        return expression();
+        StmtPtr stmt = declaration();
+        if (stmt) 
+        {
+            statements.push_back(std::move(stmt));
+        }
     }
-    catch(Parser::ParseError e)
-    {
-        std::cerr << e.what() << '\n';
-        return nullptr;
-    }
-    
+
+    return statements;
 }
 
 ExprPtr Parser::expression()
@@ -193,6 +194,11 @@ ExprPtr Parser::primary()
     if (match({TokenType::KEYWORD_TRUE})) return std::make_unique<Literal>(true);
     if (match({TokenType::KEYWORD_NULL})) return std::make_unique<Literal>(std::monostate{});
 
+    // Variable lookup 
+    if (match({TokenType::IDENTIFIER})) {
+        return std::make_unique<Variable>(previous());
+    }
+
     // INT_LITERAL
     if (match({TokenType::INT_LITERAL})) {
         return std::make_unique<Literal>(std::stoi(previous().lexeme));
@@ -216,4 +222,111 @@ ExprPtr Parser::primary()
     }
 
     throw error(peek(), "Expect expression.");
+}
+
+bool Parser::is_type()
+{
+    // Native types or 'auto'
+    if (check(TokenType::KEYWORD_INT) || 
+        check(TokenType::KEYWORD_FLOAT) || 
+        check(TokenType::KEYWORD_CHAR) || 
+        check(TokenType::KEYWORD_BOOL) || 
+        check(TokenType::KEYWORD_STRING) || 
+        check(TokenType::KEYWORD_LET)) 
+    {
+        return true;
+    }
+
+    // Custom struct/class types (e.g., "Vector3 v;")
+    // Requires checking if current and next tokens are both IDENTIFIERs
+    if (check(TokenType::IDENTIFIER) && check_next(TokenType::IDENTIFIER)) 
+    {
+        return true;
+    }
+
+    return false;
+}
+
+bool Parser::check_next(TokenType type)
+{
+    if (is_at_end() || current + 1 >= static_cast<int>(tokens.size())) return false;
+    if (tokens[current + 1].type == TokenType::END_OF_FILE) return false;
+    return tokens[current + 1].type == type;
+}
+
+StmtPtr Parser::declaration()
+{
+    try
+    {
+        if (is_type())
+            return var_declaration();
+
+        return statement();
+    }
+    catch(const ParseError& error)
+    {
+        synchronize();
+        return nullptr;
+    }
+    
+}
+
+StmtPtr Parser::var_declaration()
+{
+    // 1. Consume type keyword or 'let'
+    Token type_token = advance();
+
+    // 2. Consume variable name
+    Token name = consume(TokenType::IDENTIFIER, "Expect variable name.");
+
+    // 3. Parse optional initializer (= expression)
+    ExprPtr initializer = nullptr;
+    if (match({TokenType::EQUAL})) 
+    {
+        initializer = expression();
+    } 
+    else if (type_token.type == TokenType::KEYWORD_LET) 
+    {
+        // 'let' variables MUST have an initializer for type inference
+        throw error(name, "Variables declared with 'let' must be initialized.");
+    }
+
+    // 4. Consume trailing semicolon
+    consume(TokenType::SEMICOLON, "Expect ';' after variable declaration.");
+
+    return std::make_unique<VarStmt>(type_token, name, std::move(initializer));
+}
+
+StmtPtr Parser::statement()
+{
+    if (match({TokenType::LEFT_BRACE})) 
+    {
+        return std::make_unique<BlockStmt>(block());
+    }
+
+    return expr_statement();
+}
+
+StmtPtr Parser::expr_statement()
+{
+    ExprPtr expr = expression();
+    consume(TokenType::SEMICOLON, "Expect ';' after expression.");
+    return std::make_unique<ExpressionStmt>(std::move(expr));
+}
+
+std::vector<StmtPtr> Parser::block()
+{
+    std::vector<StmtPtr> statements;
+
+    while (!check(TokenType::RIGHT_BRACE) && !is_at_end()) 
+    {
+        StmtPtr stmt = declaration();
+        if (stmt) 
+        {
+            statements.push_back(std::move(stmt));
+        }
+    }
+
+    consume(TokenType::RIGHT_BRACE, "Expect '}' after block.");
+    return statements;
 }

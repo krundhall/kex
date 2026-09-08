@@ -4,6 +4,7 @@
 #include <string>
 #include <stdexcept>
 #include <initializer_list>
+#include "Stmt.h"
 
 class Parser
 {
@@ -33,9 +34,10 @@ public:
     Parser(const std::vector<Token>& tokens)
         : tokens(tokens) {}
 
-    ExprPtr parse();
+    std::vector<StmtPtr> parse();
     bool had_error = false;
 
+    // Expression parsing rules
     ExprPtr expression();
     ExprPtr equality();
     ExprPtr comparison();
@@ -43,4 +45,14 @@ public:
     ExprPtr factor();
     ExprPtr unary();
     ExprPtr primary();
+
+    bool is_type();
+    bool check_next(TokenType type);
+
+    // Statement and Declaration parsing rules
+    StmtPtr declaration();
+    StmtPtr var_declaration();
+    StmtPtr statement();
+    StmtPtr expr_statement();
+    std::vector<StmtPtr> block();
 };
