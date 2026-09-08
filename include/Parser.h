@@ -16,7 +16,8 @@ private:
 
     struct ParseError : public std::runtime_error
     {
-        using std::runtime_error::runtime_error;
+        explicit ParseError(const std::string& message)
+            : std::runtime_error(message) {}
     };
 
     bool is_at_end();
@@ -26,7 +27,9 @@ private:
     bool check(TokenType type);
     bool match(std::initializer_list<TokenType> types);
     Token consume(TokenType type, const std::string& message);
-    std::runtime_error error(const Token& token, const std::string& message);
+    ParseError error(const Token& token, const std::string& message);
+
+    void synchronize();
     
 public:
     Parser(const std::vector<Token>& tokens)

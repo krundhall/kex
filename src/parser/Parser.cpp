@@ -47,25 +47,55 @@ bool Parser::match(std::initializer_list<TokenType> types)
     return false;
 }
 
-Token Parser::consume(TokenType type, const std::string &message)
+Token Parser::consume(TokenType type, const std::string& message)
 {
     if (check(type)) return advance();
 
+    // Throws the exception created by error()
     throw error(peek(), message);
 }
 
-std::runtime_error Parser::error(const Token &token, const std::string &message)
+// reports syntax error and returns parsererror exception object for consume() to throw
+Parser::ParseError Parser::error(const Token& token, const std::string& message)
 {
     std::cerr << "[line " << token.line << "] Error";
 
-    if (token.type == TokenType::END_OF_FILE)
+    if (token.type == TokenType::END_OF_FILE) {
         std::cerr << " at end";
-    else
+    } else {
         std::cerr << " at '" << token.lexeme << "'";
-    
+    }
+
     std::cerr << ": " << message << "\n";
 
-    return std::runtime_error(message);
+    return ParseError(message);
+}
+
+void Parser::synchronize()
+{
+    this->panic_mode = false;
+    advance();
+
+    while (!is_at_end())
+    {
+        if (previous().type == TokenType::SEMICOLON) return;
+
+        switch (peek().type)
+        {
+            case TokenType::KEYWORD_STRUCT:
+            case TokenType::KEYWORD_FN:
+            case TokenType::KEYWORD_LET:
+            case TokenType::KEYWORD_FOR:
+            case TokenType::KEYWORD_IF:
+            case TokenType::KEYWORD_WHILE:
+            case TokenType::KEYWORD_RETURN:
+                return;
+            default:
+                break;
+        }
+
+        advance();
+    }
 }
 
 ExprPtr Parser::expression()
@@ -145,7 +175,7 @@ ExprPtr Parser::primary()
 {
     if (match({TokenType::KEYWORD_FALSE})) return std::make_unique<Literal>(false);
     if (match({TokenType::KEYWORD_TRUE})) return std::make_unique<Literal>(true);
-    if (match({TokenType::KEYWORD_NULL})) return std::make_unique<Literal>(false);
+    if (match({TokenType::KEYWORD_NULL})) return std::make_unique<Literal>(std::monostate{});
 
     if (match({TokenType::INT_LITERAL, TokenType::FLOAT_LITERAL, 
                TokenType::CHAR_LITERAL, TokenType::STRING_LITERAL}))
@@ -160,5 +190,5 @@ ExprPtr Parser::primary()
         return std::make_unique<Grouping>(std::move(expr));
     }
 
-    throw std::runtime_error("Expect expression.");
+    throw error(peek(), "Expect expression");
 }

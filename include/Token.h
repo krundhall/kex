@@ -8,8 +8,8 @@ enum class TokenType
 {
     // Keywords
     KEYWORD_INT, KEYWORD_FLOAT, KEYWORD_CHAR, KEYWORD_STRING, KEYWORD_VOID,
-    KEYWORD_LET, KEYWORD_IF, KEYWORD_ELSE, KEYWORD_WHILE, KEYWORD_RETURN,
-    KEYWORD_NULL, KEYWORD_TRUE, KEYWORD_FALSE,
+    KEYWORD_LET, KEYWORD_IF, KEYWORD_ELSE, KEYWORD_FOR, KEYWORD_WHILE, KEYWORD_RETURN,
+    KEYWORD_NULL, KEYWORD_TRUE, KEYWORD_FALSE, KEYWORD_STRUCT, KEYWORD_FN,
 
     // Literals
     IDENTIFIER, INT_LITERAL, FLOAT_LITERAL,
@@ -54,11 +54,14 @@ inline std::string_view token_type_to_string(TokenType type)
         {TokenType::KEYWORD_LET, "KEYWORD_LET"},
         {TokenType::KEYWORD_IF, "KEYWORD_IF"},
         {TokenType::KEYWORD_ELSE, "KEYWORD_ELSE"},
+        {TokenType::KEYWORD_FOR, "KEYWORD_FOR"},
         {TokenType::KEYWORD_WHILE, "KEYWORD_WHILE"},
         {TokenType::KEYWORD_RETURN, "KEYWORD_RETURN"},
         {TokenType::KEYWORD_NULL, "KEYWORD_NULL"},
         {TokenType::KEYWORD_TRUE, "KEYWORD_TRUE"},
         {TokenType::KEYWORD_FALSE, "KEYWORD_FALSE"},
+        {TokenType::KEYWORD_STRUCT, "KEYWORD_STRUCT"},
+        {TokenType::KEYWORD_FN, "KEYWORD_FN"},
 
         // Literals
         {TokenType::IDENTIFIER, "IDENTIFIER"},
