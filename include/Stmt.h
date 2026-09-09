@@ -9,6 +9,7 @@ struct ExpressionStmt;
 struct VarStmt;
 struct BlockStmt;
 struct PrintStmt;
+struct IfStmt;
 
 class StmtVisitor
 {
@@ -18,6 +19,7 @@ public:
     virtual void visitVarStmt(VarStmt& stmt) = 0;
     virtual void visitBlockStmt(BlockStmt& stmt) = 0;
     virtual void visitPrintStmt(PrintStmt& stmt) = 0;
+    virtual void visitIfStmt(IfStmt& stmt) = 0;
 };
 
 struct Stmt
@@ -83,5 +85,22 @@ struct PrintStmt : public Stmt
     void accept(StmtVisitor& visitor) override
     {
         visitor.visitPrintStmt(*this);
+    }
+};
+
+struct IfStmt : public Stmt
+{
+    ExprPtr condition;
+    StmtPtr thenBranch;
+    StmtPtr elseBranch; // Can be nullptr if there is no else clause
+
+    IfStmt(ExprPtr condition, StmtPtr thenBranch, StmtPtr elseBranch)
+        : condition(std::move(condition)),
+          thenBranch(std::move(thenBranch)),
+          elseBranch(std::move(elseBranch)) {}
+
+    void accept(StmtVisitor& visitor) override
+    {
+        visitor.visitIfStmt(*this);
     }
 };

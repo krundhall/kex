@@ -69,6 +69,9 @@ type -> "int" | "float" | "char" | "string" | "bool" | "auto" | IDENTIFIER ;
 
 statement -> exprStmt | block ;
 
+ifStmt  ->  "if" "(" expression ")" statement
+            ( "else" statement )? ;
+
 exprStmt -> expression ";" ;
 
 block -> "{" declaration "}" ;

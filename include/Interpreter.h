@@ -26,6 +26,7 @@ public:
     void visitBlockStmt(BlockStmt& stmt) override;
 
     void visitPrintStmt(PrintStmt& stmt) override;
+    void visitIfStmt(IfStmt& stmt) override;
     
     // ExprVisitor Overrides
     void visitBinary(Binary& expr) override;

@@ -49,7 +49,8 @@ public:
 
     bool is_type();
     bool check_next(TokenType type);
-
+    StmtPtr ifStatement();
+    
     // Statement and Declaration parsing rules
     StmtPtr declaration();
     StmtPtr var_declaration();

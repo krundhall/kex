@@ -95,6 +95,27 @@ void Interpreter::visitPrintStmt(PrintStmt& stmt)
         std::cout << "null" << std::endl;
 }
 
+void Interpreter::visitIfStmt(IfStmt& stmt)
+{
+    LiteralValue condValue = evaluate(*stmt.condition);
+
+    // Truthiness helper
+    auto is_truthy = [](const LiteralValue& val) -> bool {
+        if (std::holds_alternative<std::monostate>(val)) return false;
+        if (std::holds_alternative<bool>(val)) return std::get<bool>(val);
+        return true; // Any non-null, non-false value is truthy
+    };
+
+    if (is_truthy(condValue))
+    {
+        execute(*stmt.thenBranch);
+    }
+    else if (stmt.elseBranch != nullptr)
+    {
+        execute(*stmt.elseBranch);
+    }
+}
+
 // ============================================================================
 // Expression Visitors
 // ============================================================================

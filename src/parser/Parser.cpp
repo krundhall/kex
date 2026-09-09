@@ -320,6 +320,9 @@ StmtPtr Parser::var_declaration()
 
 StmtPtr Parser::statement()
 {
+    if (match({TokenType::KEYWORD_IF}))
+        return ifStatement();
+
     if (match({TokenType::PRINT}))
     {
         ExprPtr value = expression();
@@ -333,6 +336,28 @@ StmtPtr Parser::statement()
     }
 
     return expr_statement();
+}
+
+StmtPtr Parser::ifStatement()
+{
+    consume(TokenType::LEFT_PAREN, "Expect '(' after 'if'.");
+    ExprPtr condition = expression();
+    consume(TokenType::RIGHT_PAREN, "Expect ')' after if condition.");
+
+    StmtPtr thenBranch = statement();
+    StmtPtr elseBranch = nullptr;
+
+    // Optional else clause
+    if (match({TokenType::KEYWORD_ELSE}))
+    {
+        elseBranch = statement();
+    }
+
+    return std::make_unique<IfStmt>(
+        std::move(condition),
+        std::move(thenBranch),
+        std::move(elseBranch)
+    );
 }
 
 StmtPtr Parser::expr_statement()
